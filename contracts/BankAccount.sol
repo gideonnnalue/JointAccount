@@ -30,6 +30,14 @@ contract BankAccount {
         address[] owners;
         uint balance;
         mapping(uint => WithdrawRequest) withdrawRequests;
+        uint requests;
+    }
+
+     struct AccountInfo {
+        uint id;
+        address[] owners;
+        uint balance;
+        uint requests;
     }
 
     mapping(uint => Account) accounts;
@@ -139,6 +147,7 @@ contract BankAccount {
         ];
         request.user = msg.sender;
         request.amount = amount;
+        accounts[accountId].requests++;
         nextWithdrawId++;
         emit WithdrawRequested(
             msg.sender,
@@ -193,5 +202,17 @@ contract BankAccount {
 
     function getAccounts() public view returns (uint[] memory) {
         return userAccounts[msg.sender];
+    }
+
+    function getAccountsInfo() public view returns (AccountInfo[] memory) {
+        uint[] memory userAccountsId = getAccounts();
+        AccountInfo[] memory allUserAccounts = new AccountInfo[](userAccountsId.length);
+        for(uint i; i < allUserAccounts.length; i++) {
+            allUserAccounts[i].owners = accounts[userAccountsId[i]].owners;
+            allUserAccounts[i].requests = accounts[userAccountsId[i]].requests;
+            allUserAccounts[i].balance = accounts[userAccountsId[i]].balance;
+            allUserAccounts[i].id = userAccountsId[i];
+        }
+        return allUserAccounts;
     }
 }

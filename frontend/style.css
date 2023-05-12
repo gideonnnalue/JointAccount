@@ -1,0 +1,19 @@
+@import "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Zen+Dots&display=swap');
+
+.header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.brand {
+  font-family: 'Playfair Display', serif;
+  /* color: #00d1b2; */
+}
+
+.owner-icon {
+  border: 1px solid black;
+  padding: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
