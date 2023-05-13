@@ -5,16 +5,19 @@ const accountTab = document.getElementById("accountColumn");
 const withdrawlTab = document.getElementById("withdrawlColumn");
 const createAcctBtn = document.getElementById("createAcctBtn");
 const createAccountModal = document.getElementById("createAcctModal");
-const createAccountCloseBtn = document.getElementById("createAcctCloseBtn")
-const createAccountCancelBtn = document.getElementById("createAcctCancelBtn")
-const createAccountControl = document.getElementById("accountControl")
+const createAccountCloseBtn = document.getElementById("createAcctCloseBtn");
+const createAccountCancelBtn = document.getElementById("createAcctCancelBtn");
+const createAccountControl = document.getElementById("accountControl");
 const addInputBtn = document.getElementById("addInput");
 const removeInputBtn = document.getElementById("removeInput");
 const depositModal = document.getElementById("depositModal");
-const depositCloseBtn = document.getElementById("depositCloseBtn")
-const depositCancelBtn = document.getElementById("depositCancelBtn")
-const depositInput = document.getElementById("depositInput")
-
+const depositCloseBtn = document.getElementById("depositCloseBtn");
+const depositCancelBtn = document.getElementById("depositCancelBtn");
+const depositInput = document.getElementById("depositInput");
+const withdrawlModal = document.getElementById("withdrawlModal");
+const withdrawlCloseBtn = document.getElementById("withdrawlCloseBtn");
+const withdrawlCancelBtn = document.getElementById("withdrawlCancelBtn");
+const withdrawlInput = document.getElementById("withdrawlInput");
 
 var modalInput = 1;
 
@@ -26,12 +29,12 @@ const userAccountCard = ({
   accountId,
 }) => {
   let allAddress = "";
-  for(addr of addresses) {
+  for (addr of addresses) {
     allAddress += `<p class="is-size-6 has-text-grey-light">
     ${addr}
-  </p>`
+  </p>`;
   }
-  return ` <div class="card mb-3">
+  return ` <div class="card mb-3" data-creator="${creator}" data-balance="${ethers.utils.formatEther(balance)}">
   <header
     class="card-header px-3 py-2 is-flex is-justify-content-space-between"
   >
@@ -53,7 +56,7 @@ const userAccountCard = ({
       <p
         class="is-size-7 has-text-grey-dark has-text-weight-semibold"
       >
-        ${balance}ETH
+        ${ethers.utils.formatEther(balance)}ETH
       </p>
     </div>
   </header>
@@ -95,12 +98,20 @@ const userAccountCard = ({
   </div>
   <footer class="card-footer">
     <a href="#" class="card-footer-item" onclick="toggleDepositModal(${accountId})">Make Deposit</a>
-    <a href="#" class="card-footer-item">Request Withdrawal</a>
+    <a href="#" class="card-footer-item" onclick="toggleWithdrawlModal(${accountId})">Request Withdrawal</a>
   </footer>
 </div>`;
 };
 
-const withdrawlRequestCard = ({creator, withdrawlId, accountId, amount, user, requestedAt, approvals}) => {
+const withdrawlRequestCard = ({
+  creator,
+  withdrawlId,
+  accountId,
+  amount,
+  user,
+  requestedAt,
+  approvals,
+}) => {
   return `<div class="card">
   <header
     class="card-header px-3 py-2 is-flex is-justify-content-space-between"
@@ -197,8 +208,8 @@ const withdrawlRequestCard = ({creator, withdrawlId, accountId, amount, user, re
     <a href="#" class="card-footer-item">Make Deposit</a>
     <a href="#" class="card-footer-item">Request Withdrawal</a>
   </footer>
-</div>`
-}
+</div>`;
+};
 
 const chainSelectClicked = () => {
   chainSelectDropdown.classList.toggle("is-active");
@@ -218,50 +229,60 @@ const toggleTabs = (idx) => {
 };
 
 const toggleModal = () => {
-  createAccountModal.classList.toggle("is-active")
-}
+  createAccountModal.classList.toggle("is-active");
+};
 
 const toggleDepositModal = (accountId) => {
   depositModal.classList.toggle("is-active");
-  if(!isNaN(accountId)) {
+  if (!isNaN(accountId)) {
     depositModal.setAttribute("data-account-id", accountId);
   } else {
-    depositModal.removeAttribute("data-account-id")
-    depositInput.value = ""
+    depositModal.removeAttribute("data-account-id");
+    depositInput.value = "";
   }
-}
+};
+
+const toggleWithdrawlModal = (accountId) => {
+  withdrawlModal.classList.toggle("is-active");
+  if (!isNaN(accountId)) {
+    withdrawlModal.setAttribute("data-account-id", accountId);
+  } else {
+    withdrawlModal.removeAttribute("data-account-id");
+    withdrawlInput.value = "";
+  }
+};
 
 // const makeDeposit = (id) => {
 //   console.log(id)
 // }
 
 const disableInputBtns = () => {
-  if(modalInput === 3) {
+  if (modalInput === 3) {
     addInputBtn.setAttribute("disabled", true);
-    removeInputBtn.removeAttribute("disabled")
+    removeInputBtn.removeAttribute("disabled");
   } else if (modalInput === 1) {
-    addInputBtn.removeAttribute("disabled")
-    removeInputBtn.setAttribute("disabled", true)
+    addInputBtn.removeAttribute("disabled");
+    removeInputBtn.setAttribute("disabled", true);
   }
-}
+};
 
 const addInput = () => {
   if (modalInput > 2) return;
   const input = document.createElement("input");
   input.setAttribute("type", "text");
-  input.setAttribute("placeholder", `address ${modalInput+1}`);
+  input.setAttribute("placeholder", `address ${modalInput + 1}`);
   input.className = "input account-input mb-2";
   createAccountControl.appendChild(input);
   modalInput++;
   disableInputBtns();
-}
+};
 
 const removeInput = () => {
   if (modalInput < 2) return;
   createAccountControl.removeChild(createAccountControl.lastChild);
   modalInput--;
   disableInputBtns();
-}
+};
 
 const setupEventListeners = () => {
   chainSelectDropdown.addEventListener("click", chainSelectClicked);
@@ -269,9 +290,11 @@ const setupEventListeners = () => {
   createAccountCloseBtn.addEventListener("click", toggleModal);
   createAccountCancelBtn.addEventListener("click", toggleModal);
   addInputBtn.addEventListener("click", addInput);
-  removeInputBtn.addEventListener("click", removeInput)
+  removeInputBtn.addEventListener("click", removeInput);
   depositCloseBtn.addEventListener("click", toggleDepositModal);
   depositCancelBtn.addEventListener("click", toggleDepositModal);
+  withdrawlCancelBtn.addEventListener("click", toggleWithdrawlModal);
+  withdrawlCloseBtn.addEventListener("click", toggleWithdrawlModal);
 
   for (let i = 0; i < tabList.children.length; i++) {
     tabList.children[i].addEventListener("click", () => toggleTabs(i));
@@ -290,16 +313,18 @@ const setupEventListeners = () => {
   //   })
   // );
 
-  withdrawlTab.insertAdjacentHTML("beforeend", withdrawlRequestCard({
-    creator: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    withdrawlId: "001",
-    accountId: "005",
-    amount: "0.0090",
-    approvals: "1 / 3",
-    requestedAt: "25TH MAY 2023 - 5:00AM",
-    user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-  }))
- 
+  withdrawlTab.insertAdjacentHTML(
+    "beforeend",
+    withdrawlRequestCard({
+      creator: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      withdrawlId: "001",
+      accountId: "005",
+      amount: "0.0090",
+      approvals: "1 / 3",
+      requestedAt: "25TH MAY 2023 - 5:00AM",
+      user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    })
+  );
 };
 
 setupEventListeners();

@@ -51,7 +51,6 @@ async function createAccount() {
 async function viewAccounts() {
   await getAccess();
   const result = await contract.getAccountsInfo();
-  console.log(result);
   for (let i = 0; i < result.length; i++) {
     accountTab.insertAdjacentHTML(
       "beforeend",
@@ -60,10 +59,9 @@ async function viewAccounts() {
         balance: result[i][2],
         addresses: result[i][1],
         withdrawlRequests: result[i][3],
-        accountId: result[i][0]
+        accountId: result[i][0],
       })
     );
-    console.log(result[i][0]);
   }
   document.getElementById("accounts").innerHTML = result;
 }
@@ -80,10 +78,34 @@ async function viewAccounts() {
 //   }
 // }
 
+async function makeWithdrawl() {
+  const amount = withdrawlInput.value;
+  if (!amount.trim() || isNaN(amount)) {
+    alert("Input a valid number");
+    return;
+  }
+}
+
 async function makeDeposit() {
   const amount = depositInput.value;
+  if (!amount.trim() || isNaN(amount)) {
+    alert("Input a valid number");
+    return;
+  }
+  const depositBtn = document.getElementById("depositSaveBtn");
   const accountId = depositModal.getAttribute("data-account-id");
-  console.log(amount, accountId)
+  const weiAmount = ethers.utils.parseUnits(amount, "ether");
+  try {
+    depositBtn.classList.add("is-loading")
+    const depositTx = await contract.deposit(accountId, { value: weiAmount });
+    await depositTx.wait(depositTx);
+    toggleDepositModal();
+  } catch (e) {
+    console.log(e);
+    alert("Error occured, check console")
+  } finally {
+    depositBtn.classList.remove("is-loading")
+  }
 }
 
 async function getAccounts() {
@@ -107,7 +129,6 @@ async function getAccess() {
     eventLog.append(`Account Created: ID = ${id}, Owners = ${owners}`);
   });
 }
-
 
 window.addEventListener("load", (event) => {
   viewAccounts();
