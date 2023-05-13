@@ -78,11 +78,25 @@ async function viewAccounts() {
 //   }
 // }
 
-async function makeWithdrawl() {
+async function requestWithdrawl() {
   const amount = withdrawlInput.value;
   if (!amount.trim() || isNaN(amount)) {
     alert("Input a valid number");
     return;
+  }
+  const withdrawlBtn = document.getElementById("withdrawlSaveBtn");
+  const accountId = withdrawlModal.getAttribute("data-account-id");
+  const weiAmount = ethers.utils.parseUnits(amount, "ether");
+  try {
+    withdrawlBtn.classList.add("is-loading");
+    const withdrawlTx = await contract.requestWithdrawl(accountId, weiAmount);
+    await withdrawlTx.wait();
+    toggleWithdrawlModal();
+  } catch (e) {
+    console.log(e);
+    alert("Error occured, check console")
+  } finally {
+    withdrawlBtn.classList.remove("is-loading")
   }
 }
 
@@ -98,7 +112,7 @@ async function makeDeposit() {
   try {
     depositBtn.classList.add("is-loading")
     const depositTx = await contract.deposit(accountId, { value: weiAmount });
-    await depositTx.wait(depositTx);
+    await depositTx.wait();
     toggleDepositModal();
   } catch (e) {
     console.log(e);

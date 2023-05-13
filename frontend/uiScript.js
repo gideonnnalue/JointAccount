@@ -34,7 +34,7 @@ const userAccountCard = ({
     ${addr}
   </p>`;
   }
-  return ` <div class="card mb-3" data-creator="${creator}" data-balance="${ethers.utils.formatEther(balance)}">
+  return ` <div class="card mb-3" id="account-id-${accountId}" data-creator="${creator}" data-balance="${ethers.utils.formatEther(balance)}">
   <header
     class="card-header px-3 py-2 is-flex is-justify-content-space-between"
   >
